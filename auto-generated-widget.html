@@ -68,10 +68,10 @@ cpdefine("inline:com-chilipeppr-elem-dragdrop", ["chilipeppr_ready"], function (
     console.log("Inside of define for com-chilipeppr-elem-dragdrop");
     return {
         id: "com-chilipeppr-elem-dragdrop",
-        url: "http://raw.githubusercontent.com/chilipeppr/elem-dragdrop/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
-        fiddleurl: "http://ide.c9.io/chilipeppr/elem-dragdrop", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
-        githuburl: "http://github.com/chilipeppr/elem-dragdrop", // The backing github repo
-        testurl: "http://elem-dragdrop-chilipeppr.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
+        url: "http://raw.githubusercontent.com/dchote/elem-dragdrop/master/auto-generated-widget.html",       // The final URL of the working widget as a single HTML file with CSS and Javascript inlined. You can let runme.js auto fill this if you are using Cloud9.
+        fiddleurl: "http://ide.c9.io/undefined/undefined", // The edit URL. This can be auto-filled by runme.js in Cloud9 if you'd like, or just define it on your own to help people know where they can edit/fork your widget
+        githuburl: "http://github.com/dchote/elem-dragdrop", // The backing github repo
+        testurl: "http://undefined-undefined.c9users.io/widget.html",   // The standalone working widget so can view it working by itself
 
         name: "Element / Drag Drop",
         desc: "An element that presents a drag and drop icon that allows files to be dragged onto it. A pubsub event called /com-chilipeppr-elem-dragdrop/ondropped is published when the drop is complete. The contents of the file are passed in the pubsub call so different widgets/elements can consume the contents of the file.",
@@ -148,9 +148,41 @@ cpdefine("inline:com-chilipeppr-elem-dragdrop", ["chilipeppr_ready"], function (
             this.setupGlobalAjaxError();
             this.setupSubscribe();
             
+            this.setupOpenFile();
             this.setupDownload();
             
             //console.log(this);
+        },
+        setupOpenFile: function() {
+            var filePicker = $("#com-chilipeppr-elem-dragdrop-openfile-picker");
+
+            filePicker.on('change', function(){
+                if (!window.FileReader) {
+                    alert('Your browser is not supported');
+                    return false;
+                }
+                
+                var input = filePicker.get(0);
+                if (input.files.length > 0) {
+                    var fileReader = new FileReader();
+                    fileReader.fileName = input.files[0].name; // HAX, but simplest way to pass up the stack
+                    
+                    fileReader.onload = function (fileLoadedEvent) {
+                        var gcodetxt = fileLoadedEvent.target.result;
+                        
+                        var info = {
+                        	name: fileLoadedEvent.target.fileName, 
+                        	lastModified: new Date()
+                        };
+                        
+                        chilipeppr.publish("/com-chilipeppr-elem-dragdrop/ondropped", gcodetxt, info);
+                    };
+                    
+                    fileReader.readAsText(input.files[0], "UTF-8");
+                }
+            });
+            
+            $('.com-chilipeppr-elem-dragdrop-openfile').click(function() { $("#com-chilipeppr-elem-dragdrop-openfile-picker").click(); });
         },
         setupDownload: function() {
             $('.com-chilipeppr-elem-dragdrop-download').click(this.onDownload.bind(this));
@@ -576,6 +608,10 @@ cpdefine("inline:com-chilipeppr-elem-dragdrop", ["chilipeppr_ready"], function (
       <li><a href="javascript:" class="com-chilipeppr-elem-dragdrop-loadcirclediamondsquare">Load Circle Diamond Square Calibration Gcode (mm)</a></li>
       <li><a href="javascript:" class="com-chilipeppr-elem-dragdrop-loadlogosvg">Load ChiliPeppr Logo SVG File (SVG's can be drag/dropped now!)</a></li>
       <li class="divider"></li>
+      <li>
+        <a href="javascript:" class="com-chilipeppr-elem-dragdrop-openfile">Open Gcode File</a>
+        <input type="file" id="com-chilipeppr-elem-dragdrop-openfile-picker" name="com-chilipeppr-elem-dragdrop-openfile-picker" title="Open Gcode File" style="display: none;" />
+      </li>
       <li><a href="javascript:" class="com-chilipeppr-elem-dragdrop-download">Download/Save Gcode File</a></li>
       <li class="divider"></li>
       <li role="presentation" class="dropdown-header">Open Gcode From URL</li>
