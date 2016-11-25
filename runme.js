@@ -1356,7 +1356,7 @@ var pushToGithubSync = function(message) {
   var proc = require('child_process');
 
   if(! message)
-    message = "Made some changes to ChiliPeppr widget using Cloud9";
+    message = "Made some changes";
   
   // git add *
   // git commit -m "Made some changes to ChiliPeppr widget using Cloud9"
